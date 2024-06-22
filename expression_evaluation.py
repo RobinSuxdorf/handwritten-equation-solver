@@ -11,7 +11,7 @@ operators = {
     "-": Operator(1, "left")
 }
 
-def is_number(token: str) -> bool:
+def _is_number(token: str) -> bool:
     """
     Checks whether a token is a number or not.
 
@@ -28,7 +28,7 @@ def is_number(token: str) -> bool:
         return False
 
 
-def tokenize(expression: str) -> list[str]:
+def _tokenize(expression: str) -> list[str]:
     """
     Returns a tokenization of the input expression, e.g. each number and operator will be an entry on the result list.
 
@@ -58,7 +58,7 @@ def tokenize(expression: str) -> list[str]:
 
     return tokens
 
-def should_pop_operator_stack(operator_stack: list[str], token: str) -> bool:
+def _should_pop_operator_stack(operator_stack: list[str], token: str) -> bool:
     """
     Determine if the operator stack should be popped based on precedence and associativity.
 
@@ -83,9 +83,9 @@ def should_pop_operator_stack(operator_stack: list[str], token: str) -> bool:
         )
     )
 
-def shunting_yard(expression: str) -> list[str]:
+def _shunting_yard(expression: str) -> list[str]:
     """
-    Takes a mathematical expression in infix notation and transforms it to reverse polish notation.
+    Takes a mathematical expression in infix notation and transforms it to reverse Polish notation (RPN).
 
     Args:
         expression (str): The mathematil expression.
@@ -96,13 +96,13 @@ def shunting_yard(expression: str) -> list[str]:
     output: list[str] = []
     operator_stack: list[str] = []
 
-    tokens = tokenize(expression)
+    tokens = _tokenize(expression)
 
     for token in tokens:
-        if is_number(token):
+        if _is_number(token):
             output.append(token)
         elif token in operators:
-            while should_pop_operator_stack(operator_stack, token):
+            while _should_pop_operator_stack(operator_stack, token):
                 output.append(operator_stack.pop())
             operator_stack.append(token)
         elif token == ",":
@@ -119,3 +119,74 @@ def shunting_yard(expression: str) -> list[str]:
         output.append(operator_stack.pop())
 
     return output
+
+def _evaluate_operator(operator: str, x: float, y: float) -> float:
+    """
+    Evaluates a binary operation on two operands.
+
+    Args:
+        operator (str): The operator, one of "+", "-", "*", "/" or "^".
+        operand1 (float): The first operand.
+        operand2 (float): The second operand.
+
+    Returns:
+        float: The result of the operation.
+    """
+    if operator == "+":
+        return x + y
+    elif operator == "-":
+        return x - y
+    elif operator == "*":
+        return x * y
+    elif operator == "/":
+        if y == 0:
+            raise ValueError("Division by zero.")
+        return x / y
+    elif operator == "^":
+        return pow(x, y)
+    else:
+        raise ValueError(f"Unknown operator: {operator}")
+
+def _evaluate_rpn_expression(tokens: list[str]) -> float:
+    """
+    Evaluates an expression in reverse Polish notation (RPN).
+
+    Args:
+        tokens (list[str]): The expression in RPN as list of tokens.
+
+    Returns:
+        float: The result of the expression.
+    """
+    stack: list[float] = []
+
+    for token in tokens:
+        if _is_number(token):
+            stack.append(float(token))
+        else:
+            try:
+                operand2 = stack.pop()
+                operand1 = stack.pop()
+            except IndexError:
+                raise ValueError("Invalid expression: insufficient values in the expression.")
+            result = _evaluate_operator(token, operand1, operand2)
+            stack.append(result)
+
+    if len(stack) != 1:
+        raise ValueError("Invalid expression: the stack should have exactly one element after evaluation.")
+
+
+    return stack[0]
+
+def evaluate_expression(expression: str) -> float:
+    """
+    Evaluates a mathematical expression in infix notation.
+
+    Args:
+        expression (str): The expression to be evaluated.
+
+    Returns:
+        float: The result of the evaluation.
+    """
+    tokens = _shunting_yard(expression)
+    result = _evaluate_rpn_expression(tokens)
+    return result
