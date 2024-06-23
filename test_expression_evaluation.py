@@ -5,7 +5,8 @@ from expression_evaluation import (
     _evaluate_rpn_expression,
     _is_number,
     _shunting_yard,
-    _tokenize
+    _tokenize,
+    evaluate_expression
 )
 
 @pytest.mark.parametrize("test_token, expected", [
@@ -67,3 +68,12 @@ def test_evaluate_operator_division_by_zero() -> None:
 ])
 def test_evaluate_rpn_expression(tokens: list[str], expected_result: float) -> None:
     assert _evaluate_rpn_expression(tokens) == expected_result
+
+@pytest.mark.parametrize("expression, expected_result", [
+    ("3+4", 7),
+    ("3 + 4 * (2 - 1)", 7),
+    ("6 / 3 + (2 - 1)", 3),
+    ("3 + 4 * 2 / (1 - 3)^2^3", 3.03125)
+])
+def test_evaluate_expression(expression: str, expected_result: float) -> None:
+    assert evaluate_expression(expression) == expected_result
