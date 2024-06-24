@@ -51,7 +51,7 @@ def _crop_and_resize_images(binary_image: np.ndarray, bounding_rects: list[tuple
 
     for rect in bounding_rects:
         x, y, w, h = rect
-        im_crop = binary_image[y:y + h, x:x + w]
+        im_crop = binary_image[y - 10:y + h + 10, x - 10:x + w + 10]
 
         im_resize = cv2.resize(im_crop, (28, 28))
 
